@@ -1,0 +1,30 @@
+{
+  "name": "gulp-require-js",
+  "version": "0.0.1",
+  "description": "基于gulp做功能模块引入加载",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "gulp",
+    "require",
+    "include",
+    "import",
+    "js"
+  ],
+  "author": "664475324@qq.com",
+  "dependencies": {
+    "gulp-util": "^3.0.7",
+    "through2": "^2.0.1"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heyuuuu/gulp-require-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/heyuuuu/gulp-require-js/issues"
+  },
+  "homepage": "https://github.com/heyuuuu/gulp-require-js#readme"
+}
