@@ -6,9 +6,15 @@ const nodepath = require('path')
 
 module.exports = function (options) {
     // 默认配置
-    const { fileReg , debug } = Object.assign({debug:false,fileReg:/@import\s["'](.*\.js)["']/gi},options);
+    const defaultOptions = {
+        debug   : false,
+        fileReg : /^[\B\n]?\$import\(['"](.*)['"]\)/gi,
+        alias   : {}
+    };
+    // 自定义配置覆盖默认配置
+    const { fileReg , debug , alias } = Object.assign(defaultOptions,options);
     // 记录编译文件，防止重复编译
-    let importStack = {};
+    let importStack = {};   
 
     // 输出控制台
     const message = (msg) => {
@@ -30,10 +36,15 @@ module.exports = function (options) {
         })
 
         importStack[path] = path;
-
         content = content.replace(fileReg, (match, fileName) => {
+            // 处理路径别称
+            Object.keys(alias).map( v => { fileName = fileName.replace(alias[v],v) });
+
+            const { dir , root } = nodepath.parse(fileName);
             const parentPath = nodepath.parse(path).dir;
-            const importPath = nodepath.join(parentPath,fileName);
+            
+            // 获取真实的绝对路径
+            const importPath =  nodepath.join( root ? __dirname : parentPath ,fileName);
 
             if( importStack.hasOwnProperty(importPath) )return '';
 

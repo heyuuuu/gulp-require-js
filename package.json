@@ -1,6 +1,6 @@
 {
-  "name": "gulp-require-js",
-  "version": "0.0.1",
+  "name": "gulp-require-module-js",
+  "version": "0.0.2",
   "description": "基于gulp做功能模块引入加载",
   "main": "index.js",
   "scripts": {
