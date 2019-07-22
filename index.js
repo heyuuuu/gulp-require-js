@@ -7,14 +7,15 @@ const nodepath = require('path')
 module.exports = function (options) {
     // 默认配置
     const defaultOptions = {
-        debug   : false,
-        fileReg : /^[\B\n]?\$import\(['"](.*)['"]\)/gi,
-        alias   : {}
+        debug       : false,
+        fileReg     : /^[\B\n]?\$import\(['"](.*)['"]\)/gi,
+        alias       : {},
+        splitchunk  : false,
     };
     // 自定义配置覆盖默认配置
-    const { fileReg , debug , alias } = Object.assign(defaultOptions,options);
+    const { fileReg , debug , alias , splitchunk } = Object.assign(defaultOptions,options);
     // 记录编译文件，防止重复编译
-    let importStack = {};   
+    const importStack = {};   
 
     // 输出控制台
     const message = (msg) => {
@@ -24,7 +25,7 @@ module.exports = function (options) {
     }
 
     // 加载文件
-    const importJS = (path) => {
+    const importJS = (path,importStack) => {
 
         if (!fs.existsSync(path)) {
             message(`${path} Not found!`);
@@ -50,7 +51,7 @@ module.exports = function (options) {
 
             message(`import ${fileName} --> ${path}`);
 
-            let importContent = importJS(importPath);
+            let importContent = importJS(importPath,importStack);
 
             return importContent;
         });
@@ -69,7 +70,7 @@ module.exports = function (options) {
 			return
 		}
 
-		file.contents = Buffer.from(importJS(file.path));
+		file.contents = Buffer.from(importJS(file.path,splitchunk ? {} : importStack ));
 		file.path = gutil.replaceExtension(file.path, '.js');
 		message(`${file.path} ImportJS finished.`)
 		cb(null, file)
