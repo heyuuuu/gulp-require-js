@@ -41,7 +41,7 @@ module.exports = function (options) {
             Object.keys(alias).map( v => { fileName = fileName.replace(alias[v],v) });
 
             const { dir , root } = nodepath.parse(fileName);
-            const parentPath = root ? nodepath.resolve('.' + '.'+ nodepath.sep ) : nodepath.parse(path).dir;
+            const parentPath = root ? nodepath.resolve( '.'+ nodepath.sep ) : nodepath.parse(path).dir;
             
             // 获取真实的绝对路径
             const importPath =  nodepath.join( parentPath , fileName);
