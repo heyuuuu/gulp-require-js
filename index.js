@@ -8,12 +8,13 @@ module.exports = function (options) {
     // 默认配置
     const defaultOptions = {
         debug       : false,
-        fileReg     : /^[\B\n]?\$import\(['"](.*)['"]\)/gi,
+        entry		: "$export",
+        fileReg     : /^\$import\(['"](.*)['"]\)/igm,
         alias       : {},
         splitchunk  : false,
     };
     // 自定义配置覆盖默认配置
-    const { fileReg , debug , alias , splitchunk } = Object.assign(defaultOptions,options);
+    const { fileReg , debug , alias , splitchunk , entry } = Object.assign(defaultOptions,options);
     // 记录编译文件，防止重复编译
     const importStack = {};   
 
@@ -25,7 +26,7 @@ module.exports = function (options) {
     }
 
     // 加载文件
-    const importJS = (path,importStack) => {
+    const importJS = (path,importStack,keyName) => {
 
         if (!fs.existsSync(path)) {
             message(`${path} Not found!`);
@@ -36,8 +37,22 @@ module.exports = function (options) {
             encoding: 'utf8'
         })
 
-        importStack[path] = path;
-        content = content.replace(fileReg, (match, fileName) => {
+		if(keyName){
+			content = content.replace(entry,keyName);
+        }
+        
+        importStack[path] = {path,keyName};
+
+        content = content.replace(fileReg, (match, fileNames) => {
+
+            let [ fileName , keyName = "" ] = fileNames.replace(/['"\s]/g,'').split(',');
+
+            // 如果没有传入函数名
+			if(!keyName){
+				console.log('gulp-require-module-js', `warning: ${path} --> ${match} grammatical errors!`);
+				return "";
+			};
+
             // 处理路径别称
             Object.keys(alias).map( v => { fileName = fileName.replace(alias[v],v) });
 
@@ -47,11 +62,14 @@ module.exports = function (options) {
             // 获取真实的绝对路径
             const importPath =  nodepath.join( parentPath , fileName);
 
-            if( importStack.hasOwnProperty(importPath) )return '';
+			if( importStack.hasOwnProperty(importPath) ){
+				const KeyName = importStack[importPath].keyName;
+				return KeyName != keyName ? `let ${keyName} = ${KeyName};` : "";
+			};
 
             message(`import ${fileName} --> ${path}`);
 
-            let importContent = importJS(importPath,importStack);
+            let importContent = importJS(importPath,importStack,keyName);
 
             return importContent;
         });
@@ -70,7 +88,7 @@ module.exports = function (options) {
 			return
 		}
 
-		file.contents = Buffer.from(importJS(file.path,splitchunk ? {} : importStack ));
+		file.contents = Buffer.from(importJS(file.path,splitchunk ? {} : importStack ,''));
 		file.path = gutil.replaceExtension(file.path, '.js');
 		message(`${file.path} ImportJS finished.`)
 		cb(null, file)
